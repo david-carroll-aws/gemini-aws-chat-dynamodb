@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recent Projects</title>
+    <link rel="stylesheet" href="gdb/gdb.css">
+    <style>
+        :root {
+            --bg-color: #0f1b2a;
+            --widget-bg: #161e2d;
+            --text-main: #ffffff;
+            --text-link: #42b4ff;
+            --text-disabled: #5b6b7e;
+            --border-color: #2c3e50;
+            --divider-color: #414d5c;
+        }
+        * { box-sizing: border-box; }
+        body {
+            background-color: var(--bg-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 20px;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .aws-widget {
+            width: 320px;
+            background-color: var(--widget-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+        .widget-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 16px 12px 16px;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-main);
+            font-weight: 700;
+            font-size: 16px;
+        }
+        .header-left svg.grid-icon { width: 16px; height: 16px; fill: currentColor; }
+        .info-link { color: var(--text-link); font-size: 12px; text-decoration: none; font-weight: 500; }
+        .header-right { display: flex; align-items: center; cursor: pointer; color: var(--text-main); }
+        .all-services-btn {
+            background: transparent;
+            color: var(--text-link);
+            border: 1px solid var(--text-link);
+            border-radius: 20px;
+            padding: 4px 16px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            align-self: flex-start;
+            margin: 0 16px 10px 24px;
+            transition: background 0.2s;
+        }
+        .all-services-btn:hover { background: rgba(66, 180, 255, 0.1); }
+        .services-list { list-style: none; padding: 0; margin: 0; }
+        .services-list li { border-bottom: 1px solid var(--divider-color); margin-right: 16px; }
+        .services-list li:last-child { border-bottom: none; margin-bottom: 8px; }
+        .service-item {
+            display: flex;
+            align-items: center;
+            padding: 6px 0 6px 12px;
+            cursor: pointer;
+            text-decoration: none;
+            user-select: none;
+        }
+        .service-icon { width: 24px; height: 24px; flex-shrink: 0; margin-right: 14px; }
+        .service-name {
+            color: var(--text-link);
+            font-size: 14px;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .service-item:hover .service-name { text-decoration: underline; }
+        .service-item.active .service-name { color: #ffffff; font-weight: 700; }
+        .service-item.disabled { cursor: not-allowed; pointer-events: none; opacity: 0.45; }
+        .service-item.disabled .service-name { color: var(--text-disabled); }
+        .service-item.disabled .service-icon { filter: grayscale(1); }
+
+        .frames {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            flex-grow: 1;
+            position: relative;
+            transition: grid-template-columns 0.25s ease;
+        }
+        .frames iframe {
+            width: 100%;
+            height: 90vh;
+            background: #0f1b2a;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+
+        /* ---- Logs mode: hide the docs frame, stretch the main frame ---- */
+        body.logs-mode .frames { grid-template-columns: 1fr; }
+        body.logs-mode #documentationFrame { display: none; }
+        body.logs-mode #docLoader { display: none !important; }
+
+        /* Loader overlays */
+        .frame-loader {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: calc(50% - 10px);
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            background: rgba(15, 27, 42, 0.92);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-link);
+            font-size: 14px;
+            z-index: 10;
+            pointer-events: none;
+        }
+        .frame-loader.visible { display: flex; }
+        .frame-loader.doc-loader { left: auto; right: 0; }
+        .spinner {
+            width: 36px;
+            height: 36px;
+            border: 3px solid #2c3e50;
+            border-top-color: #42b4ff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media (max-width: 1100px) {
+            .frames { grid-template-columns: 1fr; }
+            .frame-loader { width: 100%; height: calc(50% - 10px); }
+            .frame-loader.doc-loader { top: auto; bottom: 0; right: auto; left: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="aws-widget">
+        <div class="widget-header">
+            <div class="header-left">
+                <svg class="grid-icon" viewBox="0 0 16 16">
+                    <path d="M2 2h4v4H2V2zm0 8h4v4H2v-4zm8-8h4v4h-4V2zm0 8h4v4h-4v-4z" fill="currentColor"/>
+                </svg>
+                Recent Projects <a href="#" class="info-link">Info</a>
+            </div>
+            <div class="header-right">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                    <circle cx="8" cy="3" r="1.5"/>
+                    <circle cx="8" cy="8" r="1.5"/>
+                    <circle cx="8" cy="13" r="1.5"/>
+                </svg>
+            </div>
+        </div>
+
+        <button class="all-services-btn">All services</button>
+        <ul class="services-list" id="serviceList"></ul>
+    </div>
+
+    <div class="frames" id="frames">
+        <iframe name="mainFrame"          id="mainFrame"          src="about:blank" title="Service"></iframe>
+        <iframe name="documentationFrame" id="documentationFrame" src="about:blank" title="Documentation"></iframe>
+
+        <div class="frame-loader" id="mainLoader">
+            <div class="spinner"></div>
+            <div>Loading…</div>
+        </div>
+        <div class="frame-loader doc-loader" id="docLoader">
+            <div class="spinner"></div>
+            <div>Loading…</div>
+        </div>
+    </div>
+
+    <script>
+        const SERVICES = [
+            { key: "alarmaudit",     label: "Alarm Auditor",                     icon: "https://raw.githubusercontent.com/icacho-dev/aws-architecture-icons/main/Architecture-Service-Icons_02072025/Arch_Management-Governance/48/Arch_Amazon-CloudWatch_48.svg" },
+            { key: "gchat",          label: "Gemini Chat",                       icon: "https://www.gstatic.com/lamda/images/gemini_sparkle_aurora_33f86dc0c0257da337c63.svg" },
+            { key: "gchatDB",        label: "Gemini Chat -> Dynamo DB",          icon: "https://www.gstatic.com/lamda/images/gemini_sparkle_aurora_33f86dc0c0257da337c63.svg" },
+            { key: "vertex",         label: "Vertex AI",                         icon: "https://www.gstatic.com/lamda/images/gemini_sparkle_aurora_33f86dc0c0257da337c63.svg" },
+            { key: "s3",             label: "S3 | upload | CloudWatch Alarm | SNS", icon: "https://raw.githubusercontent.com/icacho-dev/aws-architecture-icons/main/Architecture-Service-Icons_02072025/Arch_Storage/48/Arch_Amazon-Simple-Storage-Service_48.svg" },
+            { key: "ec2",            label: "EC2",                               icon: "https://raw.githubusercontent.com/icacho-dev/aws-architecture-icons/main/Architecture-Service-Icons_02072025/Arch_Compute/48/Arch_Amazon-EC2_48.svg" },
+            { key: "lambda",         label: "Lambda",                            icon: "https://raw.githubusercontent.com/icacho-dev/aws-architecture-icons/main/Architecture-Service-Icons_02072025/Arch_Compute/48/Arch_AWS-Lambda_48.svg" },
+            { key: "logs",           label: "Logs",                              icon: "https://raw.githubusercontent.com/icacho-dev/aws-architecture-icons/main/Resource-Icons_02072025/Res_Management-Governance/Res_Amazon-CloudWatch_Logs_48.svg" },
+            { key: "apigateway",     label: "API Gateway",                       icon: "https://raw.githubusercontent.com/icacho-dev/aws-architecture-icons/main/Architecture-Service-Icons_02072025/Arch_Networking-Content-Delivery/48/Arch_Amazon-API-Gateway_48.svg" },
+            { key: "iam",            label: "IAM",                               icon: "https://raw.githubusercontent.com/icacho-dev/aws-architecture-icons/main/Architecture-Service-Icons_02072025/Arch_Security-Identity-Compliance/48/Arch_AWS-Identity-and-Access-Management_48.svg" },
+            { key: "beanstalk",      label: "Elastic Beanstalk",                 icon: "https://raw.githubusercontent.com/icacho-dev/aws-architecture-icons/main/Architecture-Service-Icons_02072025/Arch_Compute/48/Arch_AWS-Elastic-Beanstalk_48.svg" },
+            { key: "batch",          label: "Batch",                             icon: "https://raw.githubusercontent.com/icacho-dev/aws-architecture-icons/main/Architecture-Service-Icons_02072025/Arch_Compute/48/Arch_AWS-Batch_48.svg", disabled: true },
+            { key: "eks",            label: "Elastic Kubernetes Service",        icon: "https://raw.githubusercontent.com/icacho-dev/aws-architecture-icons/main/Architecture-Service-Icons_02072025/Arch_Containers/48/Arch_Amazon-Elastic-Kubernetes-Service_48.svg", disabled: true },
+            { key: "s3project2",     label: "Another S3 Project",                icon: "https://raw.githubusercontent.com/icacho-dev/aws-architecture-icons/main/Architecture-Service-Icons_02072025/Arch_Storage/48/Arch_Amazon-Simple-Storage-Service_48.svg" },
+            { key: "storagegateway", label: "Storage Gateway",                   icon: "https://raw.githubusercontent.com/icacho-dev/aws-architecture-icons/main/Architecture-Service-Icons_02072025/Arch_Storage/48/Arch_AWS-Storage-Gateway_48.svg" },
+            { key: "aurora",         label: "Aurora",                            icon: "https://raw.githubusercontent.com/icacho-dev/aws-architecture-icons/main/Architecture-Service-Icons_02072025/Arch_Database/48/Arch_Amazon-Aurora_48.svg", disabled: true },
+            { key: "rds",            label: "RDS",                               icon: "https://raw.githubusercontent.com/icacho-dev/aws-architecture-icons/main/Architecture-Service-Icons_02072025/Arch_Database/48/Arch_Amazon-RDS_48.svg" },
+            { key: "sns",            label: "Simple Notification Service",       icon: "https://raw.githubusercontent.com/icacho-dev/aws-architecture-icons/main/Architecture-Service-Icons_02072025/Arch_App-Integration/48/Arch_Amazon-Simple-Notification-Service_48.svg" },
+            { key: "cloudwatch",     label: "CloudWatch",                        icon: "https://raw.githubusercontent.com/icacho-dev/aws-architecture-icons/main/Architecture-Service-Icons_02072025/Arch_Management-Governance/48/Arch_Amazon-CloudWatch_48.svg" },
+            { key: "sagemaker",      label: "Amazon SageMaker AI",               icon: "https://raw.githubusercontent.com/icacho-dev/aws-architecture-icons/main/Architecture-Service-Icons_02072025/Arch_Analytics/48/Arch_Amazon-SageMaker_48.svg", disabled: true },
+            { key: "bedrock",        label: "Amazon Bedrock",                    icon: "https://raw.githubusercontent.com/icacho-dev/aws-architecture-icons/main/Architecture-Service-Icons_02072025/Arch_Artificial-Intelligence/48/Arch_Amazon-Bedrock_48.svg", disabled: true },
+            { key: "config",         label: "AWS Config",                        icon: "https://raw.githubusercontent.com/icacho-dev/aws-architecture-icons/main/Architecture-Service-Icons_02072025/Arch_Management-Governance/48/Arch_AWS-Config_48.svg" },
+            { key: "health",         label: "AWS Health Dashboard",              icon: "https://raw.githubusercontent.com/icacho-dev/aws-architecture-icons/main/Architecture-Service-Icons_02072025/Arch_Management-Governance/48/Arch_AWS-Health-Dashboard_48.svg" },
+            { key: "cloudshell",     label: "CloudShell",                        icon: "https://raw.githubusercontent.com/icacho-dev/aws-architecture-icons/main/Architecture-Service-Icons_02072025/Arch_Developer-Tools/48/Arch_AWS-CloudShell_48.svg" }
+        ];
+
+        // Services that live outside this site (loaded directly into mainFrame)
+        const EXTERNAL_SERVICES = {
+            gchat: "https://gchat-988398630438.us-east1.run.app"
+        };
+
+        // Services that open the GDB overlay instead of loading an iframe
+        const OVERLAY_SERVICES = ["gchatDB"];
+
+        // Services that hide the docs frame (full-width main frame)
+        const FULL_WIDTH_SERVICES = ["logs"];
+
+        // Show the loader only if the load takes longer than this (ms)
+        const LOADER_DELAY = 250;
+
+        const list = document.getElementById("serviceList");
+
+        SERVICES.forEach(svc => {
+            const li = document.createElement("li");
+            const a  = document.createElement("a");
+            a.href = "#";
+            a.className = "service-item" + (svc.disabled ? " disabled" : "");
+            a.dataset.key = svc.key;
+            if (!svc.disabled) {
+                a.addEventListener("click", e => { e.preventDefault(); loadService(svc.key); });
+            } else {
+                a.setAttribute("aria-disabled", "true");
+                a.setAttribute("tabindex", "-1");
+            }
+            a.innerHTML = `
+                <img class="service-icon" alt="${svc.label}" src="${svc.icon}">
+                <span class="service-name">${svc.label}</span>
+            `;
+            li.appendChild(a);
+            list.appendChild(li);
+        });
+
+        function loadService(serviceKey) {
+            const mainFrame  = document.getElementById("mainFrame");
+            const docFrame   = document.getElementById("documentationFrame");
+            const mainLoader = document.getElementById("mainLoader");
+            const docLoader  = document.getElementById("docLoader");
+
+            // ---- GDB overlay branch ----
+            if (OVERLAY_SERVICES.includes(serviceKey)) {
+                if (typeof openGdb === "function") openGdb();
+                document.querySelectorAll(".service-item").forEach(el => {
+                    el.classList.toggle("active", el.dataset.key === serviceKey);
+                });
+                return;
+            }
+
+            // Any other service: make sure the overlay is closed
+            if (typeof closeGdb === "function") closeGdb();
+
+            const isFullWidth = FULL_WIDTH_SERVICES.includes(serviceKey);
+
+            // Toggle the layout mode
+            document.body.classList.toggle("logs-mode", isFullWidth);
+
+            // Delayed loader for the main frame
+            if (mainLoader) {
+                mainLoader.classList.remove("visible");
+                const mainTimer = setTimeout(() => mainLoader.classList.add("visible"), LOADER_DELAY);
+                mainFrame.onload = () => {
+                    clearTimeout(mainTimer);
+                    mainLoader.classList.remove("visible");
+                };
+            }
+
+            // Delayed loader for the docs frame (skip if full-width mode)
+            if (docLoader && !isFullWidth) {
+                docLoader.classList.remove("visible");
+                const docTimer = setTimeout(() => docLoader.classList.add("visible"), LOADER_DELAY);
+                docFrame.onload = () => {
+                    clearTimeout(docTimer);
+                    docLoader.classList.remove("visible");
+                };
+            }
+
+            if (EXTERNAL_SERVICES[serviceKey]) {
+                mainFrame.src = EXTERNAL_SERVICES[serviceKey];
+            } else {
+                mainFrame.src = "ServiceData.html?service=" + encodeURIComponent(serviceKey);
+            }
+
+            // Only reload the docs frame if we're not in full-width mode
+            if (!isFullWidth) {
+                docFrame.src = "DocumentationData.html?service=" + encodeURIComponent(serviceKey);
+            }
+
+            document.querySelectorAll(".service-item").forEach(el => {
+                el.classList.toggle("active", el.dataset.key === serviceKey);
+            });
+        }
+
+        // Relay messages from the main iframe to the documentation iframe
+        window.addEventListener("message", (event) => {
+            if (!event.data || event.data.type !== "upload-success") return;
+
+            const docFrame = document.getElementById("documentationFrame");
+            if (docFrame && docFrame.contentWindow) {
+                docFrame.contentWindow.postMessage(event.data, "*");
+            }
+        });
+
+        // Load EC2 by default on first open
+        loadService("ec2");
+    </script>
+
+    <script src="gdb/gdb.js"></script>
+
+</body>
+</html>

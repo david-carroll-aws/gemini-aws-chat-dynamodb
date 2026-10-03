@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <style>html,body{background:#0f1b2a;margin:0;color:#fff}</style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation</title>
+    <style>
+        :root {
+            --bg: #0f1b2a;
+            --surface: #161e2d;
+            --border: #2c3e50;
+            --divider: #414d5c;
+            --text: #ffffff;
+            --text-muted: #8c9baf;
+            --accent: #42b4ff;
+            --error: #ff6b6b;
+            --badge-bg: #16324a;
+            --code-bg: #232f3e;
+        }
+        * { box-sizing: border-box; }
+        html, body { background: var(--bg); margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            padding: 24px;
+            color: var(--text);
+            min-height: 100vh;
+        }
+        h1 { margin: 0 0 4px 0; font-size: 22px; font-weight: 700; }
+        h2 { margin: 20px 0 8px 0; font-size: 16px; color: var(--accent); }
+        .subtitle { color: var(--text-muted); margin-bottom: 16px; font-size: 13px; }
+        .badge {
+            display: inline-block; padding: 2px 10px; border-radius: 12px;
+            background: var(--badge-bg); color: var(--accent);
+            font-size: 12px; font-weight: 600;
+        }
+        .card {
+            border: 1px solid var(--border); border-radius: 8px;
+            padding: 18px; background: var(--surface);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            margin-bottom: 16px;
+        }
+        .card p { margin: 0 0 12px 0; line-height: 1.55; font-size: 14px; }
+        .card a { color: var(--accent); text-decoration: none; }
+        .card a:hover { text-decoration: underline; }
+        .row {
+            display: flex; justify-content: space-between;
+            padding: 8px 0; border-bottom: 1px solid var(--divider);
+            font-size: 14px;
+        }
+        .row:last-child { border-bottom: none; }
+        .label { color: var(--text-muted); }
+        .value { font-weight: 600; }
+        .error { color: var(--error); font-weight: 600; }
+        code {
+            background: var(--code-bg); color: var(--accent);
+            padding: 2px 6px; border-radius: 4px; font-size: 13px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        }
+        .sns-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .sns-btn {
+            background: transparent;
+            color: #42b4ff;
+            border: 1px solid #42b4ff;
+            border-radius: 20px;
+            padding: 4px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .sns-btn:hover {
+            background: rgba(66, 180, 255, 0.1);
+        }
+        .sns-links {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            border: 1px solid #2c3e50;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .sns-links li {
+            border-bottom: 1px solid #414d5c;
+        }
+        .sns-links li:last-child {
+            border-bottom: none;
+        }
+        .sns-links li.sns-loading,
+        .sns-links li.sns-empty,
+        .sns-links li.sns-error {
+            padding: 12px 16px;
+            color: #8c9baf;
+            font-size: 13px;
+        }
+        .sns-links li.sns-error {
+            color: #ff6b6b;
+        }
+        .sns-link {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 16px;
+            text-decoration: none;
+            color: #42b4ff;
+            font-size: 13px;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
+        }
+        .sns-link:hover {
+            background: rgba(66, 180, 255, 0.08);
+            text-decoration: underline;
+        }
+        .sns-link .name {
+            font-weight: 600;
+            flex-grow: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .sns-link .meta {
+            color: #8c9baf;
+            margin-left: 12px;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+        .sns-pre {
+            background: #232f3e;
+            color: #e0e6ed;
+            padding: 16px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 12px;
+            line-height: 1.5;
+            margin: 0;
+            max-height: 500px;
+            overflow-y: auto;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================================================
+         SNS SUCCESS MESSAGES — hidden until an upload happens
+         ============================================================ -->
+    <div id="sns-section" style="display: none; margin-bottom: 32px;">
+        <div class="sns-header">
+            <h2 style="margin: 0;">SNS Success Messages</h2>
+            <button id="sns-refresh-btn" class="sns-btn">Refresh</button>
+        </div>
+        <ul id="sns-links" class="sns-links">
+            <li class="sns-loading">Loading…</li>
+        </ul>
+    </div>
+
+    <!-- ============================================================
+         SELECTED MESSAGE — hidden until a link is clicked
+         ============================================================ -->
+    <div id="sns-detail" style="display: none; margin-bottom: 24px;">
+        <div class="sns-header">
+            <h2 style="margin: 0;">Selected Message</h2>
+            <button id="sns-detail-close" class="sns-btn">Close</button>
+        </div>
+        <pre id="sns-detail-body" class="sns-pre"></pre>
+    </div>
+
+    <!-- ============================================================
+         DOCUMENTATION CONTENT
+         ============================================================ -->
+    <div id="content">Loading…</div>
+
+    <script>
+        /* ============================================================
+           SERVICE_LABELS — display names for each service key
+           ============================================================ */
+        const SERVICE_LABELS = {
+            iam:            "IAM",
+            rds:            "RDS",
+            sns:            "SNS",
+            s3:             "S3",
+			alarmaudit:		"Alarm Audit",
+            ec2:            "EC2",
+            eks:            "EKS",
+            apigateway:     "API Gateway",
+            beanstalk:      "Elastic Beanstalk",
+            cloudwatch:     "CloudWatch",
+            cloudshell:     "CloudShell",
+            storagegateway: "Storage Gateway",
+            s3project2:     "Another S3 Project",
+            sagemaker:      "Amazon SageMaker AI",
+            bedrock:        "Amazon Bedrock",
+            config:         "AWS Config",
+            health:         "AWS Health Dashboard"
+        };
+
+        /* ============================================================
+           SOURCES — one entry per service
+           ============================================================ */
+        const SOURCES = {
+            lambda: { type: "json", path: "data/documentation/lambda.json" },
+            s3:     { type: "json", path: "data/documentation/s3.json" },
+            rds:    { type: "json", path: "data/documentation/rds.json" },
+			alarmaudit: { type: "json", path: "data/documentation/alarmaudit.json" },
+            ec2:    { type: "html", path: "documentation/ec2.html" },
+			vertex: { type: "html", path: "documentation/vertex-detail.html" },
+        };
+
+        /* ============================================================
+           ROUTER
+           ============================================================ */
+        const params = new URLSearchParams(window.location.search);
+        const key = (params.get("service") || "").toLowerCase();
+        const content = document.getElementById("content");
+        const source = SOURCES[key];
+
+        if (!key) {
+            content.innerHTML = `
+                <h1>Documentation</h1>
+                <p class="subtitle">Pass a service, e.g. <code>?service=ec2</code></p>
+            `;
+        } else if (!source) {
+            renderPlaceholder(key);
+        } else {
+            switch (source.type) {
+                case "api":  loadFromApi(source, key);  break;
+                case "json": loadFromJson(source, key); break;
+                case "html": window.location.replace(source.path); break;
+            }
+        }
+
+        /* ============================================================
+           LOADERS
+           ============================================================ */
+        async function loadFromApi(source, key) {
+            content.innerHTML = `<p class="subtitle">Loading ${key}…</p>`;
+            try {
+                const res = await fetch(source.url);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                renderStructured(key, await res.json());
+            } catch (err) {
+                renderError("Failed to load API data", err.message);
+            }
+        }
+
+        async function loadFromJson(source, key) {
+            content.innerHTML = `<p class="subtitle">Loading ${key}…</p>`;
+            try {
+                const res = await fetch(source.path);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                renderStructured(key, await res.json());
+            } catch (err) {
+                renderError("Failed to load JSON file", err.message);
+            }
+        }
+
+        /* ============================================================
+           RENDERERS
+           ============================================================ */
+        function renderStructured(key, data) {
+            const sections = (data.sections || []).map(sec => {
+                const rows = Object.entries(sec.fields || {})
+                    .map(([k, v]) =>
+                        `<div class="row"><span class="label">${k}</span><span class="value">${v}</span></div>`
+                    ).join("");
+                return `<div class="card"><h2>${sec.heading}</h2>${rows}</div>`;
+            }).join("");
+
+            content.innerHTML = `
+                <h1>${data.title || key}</h1>
+                <div class="subtitle">${data.subtitle || ""} &nbsp; <span class="badge">${key}</span></div>
+                ${sections}
+            `;
+        }
+
+        function renderError(title, detail) {
+            content.innerHTML = `
+                <h1 class="error">${title}</h1>
+                <p class="subtitle">${detail}</p>
+            `;
+        }
+
+        function renderPlaceholder(key) {
+            const label = SERVICE_LABELS[key] || key;
+
+            content.innerHTML = `
+                <h1>${label}</h1>
+                <div class="subtitle">Documentation &nbsp; <span class="badge">${key}</span></div>
+
+                <div class="card">
+                    <h2>Overview</h2>
+                    <p>This section will describe what <strong>${label}</strong> is used for in this project, how it fits into the overall architecture, and any prerequisites or assumptions.</p>
+                    <p>Content is coming soon.</p>
+                </div>
+
+                <div class="card">
+                    <h2>Getting Started</h2>
+                    <div class="row"><span class="label">Owner</span><span class="value">—</span></div>
+                    <div class="row"><span class="label">Repository</span><span class="value">—</span></div>
+                    <div class="row"><span class="label">Environment</span><span class="value">—</span></div>
+                    <div class="row"><span class="label">Last updated</span><span class="value">—</span></div>
+                </div>
+
+                <div class="card">
+                    <h2>Key Concepts</h2>
+                    <p>Definitions, terminology, and any domain-specific vocabulary worth knowing before diving in.</p>
+                </div>
+
+                <div class="card">
+                    <h2>Operational Notes</h2>
+                    <p>Deployment process, monitoring hooks, alert thresholds, and common troubleshooting steps.</p>
+                </div>
+
+                <div class="card">
+                    <h2>References</h2>
+                    <p>Links to related services, runbooks, tickets, and external documentation.</p>
+                </div>
+            `;
+        }
+
+        /* ============================================================
+           SNS SUCCESS MESSAGES — hidden until an upload happens
+           ============================================================ */
+        const ALERTS_API = "https://niqxdroq1b.execute-api.us-east-1.amazonaws.com/alerts";
+        const MAX_LINKS = 10;
+        const SNS_REFRESH_MS = 5000;
+
+        let snsNotifications = [];
+        let snsRefreshTimer = null;
+        let snsSelectedKey = null;
+
+        function revealSNSSection() {
+            const section = document.getElementById("sns-section");
+            if (section) section.style.display = "block";
+
+            refreshSNSLinks({ silent: false });
+
+            if (!snsRefreshTimer) {
+                snsRefreshTimer = setInterval(() => refreshSNSLinks({ silent: true }), SNS_REFRESH_MS);
+            }
+        }
+
+        async function refreshSNSLinks({ silent = false } = {}) {
+            const list = document.getElementById("sns-links");
+            if (!list) return;
+
+            if (!silent) {
+                list.innerHTML = `<li class="sns-loading">Loading…</li>`;
+            }
+
+            try {
+                const res = await fetch(ALERTS_API);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const data = await res.json();
+
+                const incoming = (data.notifications || []).slice(0, MAX_LINKS);
+
+                if (JSON.stringify(incoming) === JSON.stringify(snsNotifications)) {
+                    return;
+                }
+
+                snsNotifications = incoming;
+                renderSNSLinks();
+
+                if (snsSelectedKey) {
+                    const stillExists = snsNotifications.find(n => n._key === snsSelectedKey);
+                    if (stillExists) {
+                        document.getElementById("sns-detail-body").textContent =
+                            JSON.stringify(stillExists.raw || stillExists, null, 2);
+                    } else {
+                        document.getElementById("sns-detail").style.display = "none";
+                        snsSelectedKey = null;
+                    }
+                }
+            } catch (err) {
+                if (!silent) {
+                    list.innerHTML = `<li class="sns-error">Failed to load: ${err.message}</li>`;
+                } else {
+                    console.warn("SNS refresh failed:", err.message);
+                }
+            }
+        }
+
+        function renderSNSLinks() {
+            const list = document.getElementById("sns-links");
+            if (!list) return;
+
+            if (!snsNotifications.length) {
+                list.innerHTML = `<li class="sns-empty">No messages yet.</li>`;
+                return;
+            }
+
+            list.innerHTML = "";
+
+            snsNotifications.forEach((n) => {
+                const li = document.createElement("li");
+                const btn = document.createElement("button");
+                btn.className = "sns-link";
+                btn.type = "button";
+
+                const filename = (n.key || "").split("/").pop() || "(unknown)";
+                const size = formatBytes(n.size || 0);
+                const time = formatTime(n.event_time);
+
+                btn.innerHTML = `
+                    <span class="name">${filename}</span>
+                    <span class="meta">${time} · ${size}</span>
+                `;
+
+                btn.addEventListener("click", () => showSNSDetail(n._key));
+                li.appendChild(btn);
+                list.appendChild(li);
+            });
+        }
+
+        function showSNSDetail(selectedKey) {
+            const notification = snsNotifications.find(n => n._key === selectedKey);
+            if (!notification) return;
+
+            snsSelectedKey = selectedKey;
+
+            const detail = document.getElementById("sns-detail");
+            const body = document.getElementById("sns-detail-body");
+            if (!detail || !body) return;
+
+            body.textContent = JSON.stringify(notification.raw || notification, null, 2);
+            detail.style.display = "block";
+        }
+
+        function formatBytes(bytes) {
+            if (!bytes) return "0 B";
+            if (bytes < 1024) return bytes + " B";
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+            return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+        }
+
+        function formatTime(iso) {
+            if (!iso) return "—";
+            try {
+                return new Date(iso).toLocaleTimeString();
+            } catch {
+                return iso;
+            }
+        }
+
+        /* ============================================================
+           WIRING
+           ============================================================ */
+        document.addEventListener("DOMContentLoaded", () => {
+            const refreshBtn = document.getElementById("sns-refresh-btn");
+            if (refreshBtn) {
+                refreshBtn.addEventListener("click", () => refreshSNSLinks({ silent: false }));
+            }
+
+            const closeBtn = document.getElementById("sns-detail-close");
+            if (closeBtn) {
+                closeBtn.addEventListener("click", () => {
+                    document.getElementById("sns-detail").style.display = "none";
+                    snsSelectedKey = null;
+                });
+            }
+        });
+
+        window.addEventListener("message", (event) => {
+            if (!event.data || event.data.type !== "upload-success") return;
+            revealSNSSection();
+        });
+
+        window.addEventListener("beforeunload", () => {
+            if (snsRefreshTimer) {
+                clearInterval(snsRefreshTimer);
+                snsRefreshTimer = null;
+            }
+        });
+    </script>
+
+</body>
+</html>

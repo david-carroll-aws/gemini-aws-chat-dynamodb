@@ -1,0 +1,90 @@
+<!-- ============================================================
+     GDB OVERLAY — Gemini Chat -> DynamoDB
+     Fragment injected into #frames by gdb.js on page load.
+     ============================================================ -->
+<div id="gdb-overlay" class="gdb-hidden">
+    <div class="gdb-container">
+
+        <header class="gdb-header">
+            <div class="gdb-title">
+                <span class="gdb-dot"></span>
+                <div class="gdb-title-text">
+                    <h2>Gemini Chat</h2>
+                    <span class="gdb-subtitle">GCloud Vertex AI → AWS Lambda → DynamoDB</span>
+                </div>
+            </div>
+            <div class="gdb-header-actions">
+                <span class="gdb-status" id="gdb-status">connecting…</span>
+                <span class="gdb-saved-count" id="gdb-saved-count" hidden>0 AI responses recorded to DynamoDB</span>
+                <button class="gdb-close" onclick="closeGdb()" aria-label="Close">×</button>
+            </div>
+        </header>
+
+        <div class="gdb-body">
+
+            <!-- ================= LEFT: CHAT ================= -->
+            <div class="gdb-chat-col">
+                <div class="gdb-messages" id="gdb-messages">
+                    <div class="gdb-msg gdb-msg-assistant">
+                        <div class="gdb-bubble">
+                            Hey! Ask me anything. This conversation is logged to DynamoDB.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= RIGHT: DYNAMODB PANEL ================= -->
+            <aside class="gdb-db-col">
+                <header class="gdb-db-header">
+                    <span class="gdb-db-icon">⛁</span>
+                    <span class="gdb-db-title">DynamoDB · ChatHistory</span>
+                    <span class="gdb-db-count" id="gdb-db-count">0</span>
+                </header>
+                <div class="gdb-db-list" id="gdb-db-list">
+                    <div class="gdb-db-empty" id="gdb-db-empty">
+                        No items yet.<br>
+                        Send a message to see it appear here.
+                    </div>
+                </div>
+            </aside>
+
+        </div>
+
+        <details class="gdb-session-details" id="gdb-session-details">
+            <summary>Session details</summary>
+            <div class="gdb-session-body">
+                <div class="gdb-session-row">
+                    <span class="gdb-session-label">Visitor</span>
+                    <code id="gdb-detail-visitor">—</code>
+                </div>
+                <div class="gdb-session-row">
+                    <span class="gdb-session-label">Conversation</span>
+                    <code id="gdb-detail-conversation">—</code>
+                </div>
+                <div class="gdb-session-row">
+                    <span class="gdb-session-label">Messages saved</span>
+                    <code id="gdb-detail-count">0</code>
+                </div>
+                <div class="gdb-session-row">
+                    <span class="gdb-session-label">First saved</span>
+                    <code id="gdb-detail-first">—</code>
+                </div>
+                <div class="gdb-session-row">
+                    <span class="gdb-session-label">Table</span>
+                    <code>ChatHistory · us-east-1</code>
+                </div>
+            </div>
+        </details>
+
+        <form class="gdb-input-row" onsubmit="sendGdbMessage(event)">
+            <input
+                id="gdb-input"
+                type="text"
+                placeholder="Type a message..."
+                autocomplete="off"
+            />
+            <button type="submit" id="gdb-send">Send</button>
+        </form>
+
+    </div>
+</div>
