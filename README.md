@@ -6,6 +6,9 @@ A **full-stack serverless** AI chat that streams prompts to Google's Gemini via 
 
 Built as a portfolio project to explore the intersection of **serverless AWS**, **Google Cloud AI**, and **live UX feedback**.
 
+<img width="1335" height="624" alt="image" src="https://github.com/user-attachments/assets/af529f0d-cca7-4401-94fe-9b94a279489f" />
+
+
 ---
 
 ## Architecture
