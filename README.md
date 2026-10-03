@@ -1,5 +1,4 @@
 # Gemini Chat → DynamoDB
-
 A **full-stack serverless** AI chat that streams prompts to Google's Gemini via Vertex AI and persists every exchange through AWS API Gateway and Lambda into DynamoDB — with the frontend reflecting save state live, so users can watch their conversation being written to the AWS environment in real time.
 
 **Note:** This is a personal educational project. The live DynamoDB view exists to demonstrate the write path end-to-end — not to suggest that real chat users need to see their data persisted.
